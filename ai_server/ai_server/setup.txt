@@ -1,0 +1,3 @@
+pip install flask, pandas, langchain-groq, python_dotenv, load_dotenv, langchain, flask-cors, scikit-learn pandas geopy joblib imbalanced-learn
+python -m venv .
+./Scripts/activate
