@@ -1,0 +1,46 @@
+# ── Dependencies ──────────────────────────
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# ── Environment ──────────────────────────
+.env
+*.env.local
+backend/.env
+ai-service/.env
+frontend/.env
+*.env
+
+# ── Build artifacts ──────────────────────
+dist/
+build/
+coverage/
+*.egg-info/
+
+# ── ML Models (large binaries) ───────────
+*.pkl
+!ai-service/app/models/*.pkl
+
+# ── Data files ───────────────────────────
+*.csv
+
+# ── IDE / OS ─────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# ── Legacy (to be cleaned up) ───────────
+main-server/node_modules/
+kyc-server/kycback/node_modules/
+kyc-server/kycui/node_modules/
+
+# ── Generated / Docs ────────────────────
+ai-service-README (1).md
+plan.md
+.gemini/
+.system_generated/
