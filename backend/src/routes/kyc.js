@@ -3,7 +3,7 @@ const multer = require('multer');
 const { extractIdDetails } = require('../services/kyc/ocrProxy');
 const KycRecord = require('../models/KycRecord');
 const User = require('../models/User');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -67,8 +67,20 @@ router.get('/status', requireAuth, async (req, res, next) => {
   }
 });
 
+// ── GET /api/kyc/all — Admin sees all KYC records ──────────
+router.get('/all', requireAuth, requireRole('admin'), async (req, res, next) => {
+  try {
+    const records = await KycRecord.find()
+      .sort({ createdAt: -1 })
+      .populate({ path: 'userId', model: User, select: 'name email' });
+    res.json({ records });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── PATCH /api/kyc/:id/verify — Admin approves/rejects KYC ─
-router.patch('/:id/verify', requireAuth, async (req, res, next) => {
+router.patch('/:id/verify', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const { status, rejectionReason } = req.body;
 

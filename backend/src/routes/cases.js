@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Transaction = require('../models/Transaction');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -9,6 +9,7 @@ const router = express.Router();
 router.patch(
   '/:id/label',
   requireAuth,
+  requireRole('admin'),
   [
     body('label')
       .isIn(['true_positive', 'false_positive', 'unreviewed'])
@@ -42,7 +43,7 @@ router.patch(
 );
 
 // ── GET /api/cases/pending — Get unreviewed flagged transactions ──
-router.get('/pending', requireAuth, async (req, res, next) => {
+router.get('/pending', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -67,7 +68,7 @@ router.get('/pending', requireAuth, async (req, res, next) => {
 });
 
 // ── GET /api/cases/stats — Case review statistics ──────────
-router.get('/stats', requireAuth, async (req, res, next) => {
+router.get('/stats', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const [total, truePositives, falsePositives, unreviewed] = await Promise.all([
       Transaction.countDocuments({}),

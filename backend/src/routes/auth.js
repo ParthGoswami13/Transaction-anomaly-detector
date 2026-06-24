@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -115,12 +115,41 @@ router.get('/me', requireAuth, async (req, res, next) => {
 });
 
 // ── GET /api/auth/users ────────────────────────────────────
-router.get('/users', requireAuth, async (req, res, next) => {
+router.get('/users', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
-    const users = await User.find({ _id: { $ne: req.user.id } }).select(
-      'name email accountNumber balance fraudCount isKYCVerified'
+    const users = await User.find().select(
+      'name email accountNumber balance fraudCount isKYCVerified role createdAt'
     );
     res.json({ users });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── PATCH /api/auth/users/:id/role — Admin changes user role ──
+router.patch('/users/:id/role', requireAuth, requireRole('admin'), async (req, res, next) => {
+  try {
+    const { role } = req.body;
+    if (!['user', 'analyst', 'admin'].includes(role)) {
+      return res.status(400).json({ error: 'Role must be user, analyst, or admin' });
+    }
+
+    // Prevent admin from demoting themselves
+    if (req.params.id === req.user.id) {
+      return res.status(400).json({ error: 'Cannot change your own role' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role },
+      { new: true }
+    ).select('name email role');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user });
   } catch (err) {
     next(err);
   }

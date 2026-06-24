@@ -13,7 +13,7 @@ const COLORS = ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#f43f5e', '#22c55e'
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-card p-3 text-sm" style={{ pointerEvents: 'none' }}>
+      <div className="chart-tooltip-glass rounded-xl p-3 text-sm" style={{ pointerEvents: 'none' }}>
         <p className="font-semibold text-[var(--text-primary)]">{payload[0].payload.name}</p>
         <p className="text-indigo-400">PR-AUC: {payload[0].value.toFixed(4)}</p>
       </div>
@@ -42,6 +42,12 @@ export default function ModelComparisonChart({ results }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+        <defs>
+          <linearGradient id="modelBarGlow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.95} />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity={0.8} />
+          </linearGradient>
+        </defs>
         <XAxis
           dataKey="name"
           tick={{ fill: '#94a3b8', fontSize: 11 }}
@@ -55,7 +61,7 @@ export default function ModelComparisonChart({ results }) {
           tickFormatter={(v) => v.toFixed(1)}
         />
         <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="prAuc" radius={[6, 6, 0, 0]} barSize={40}>
+        <Bar dataKey="prAuc" radius={[6, 6, 0, 0]} barSize={40} fill="url(#modelBarGlow)">
           {data.map((_, i) => (
             <Cell key={i} fill={COLORS[i % COLORS.length]} />
           ))}

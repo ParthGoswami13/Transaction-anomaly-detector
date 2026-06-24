@@ -68,4 +68,11 @@ export const kycAPI = {
     client.patch(`/kyc/${id}/verify`, { status, rejectionReason }),
 };
 
+// ── Admin API (admin-only endpoints) ───────────────────────
+export const adminAPI = {
+  getAllUsers: () => client.get('/auth/users'),
+  updateRole: (id, role) => client.patch(`/auth/users/${id}/role`, { role }),
+  getAllKyc: () => client.get('/kyc/all'),
+};
+
 export default client;

@@ -8,11 +8,13 @@ env/
 
 # ── Environment ──────────────────────────
 .env
-*.env.local
-backend/.env
-ai-service/.env
-frontend/.env
 *.env
+.env.*
+*.env.local
+*.env.example
+backend/.env*
+ai-service/.env*
+frontend/.env*
 
 # ── Build artifacts ──────────────────────
 dist/

@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const { body, query, validationResult } = require('express-validator');
 const Transaction = require('../models/Transaction');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
@@ -100,8 +100,11 @@ router.get('/', requireAuth, async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    // Build filter
+    // Build filter — users only see their own transactions
     const filter = {};
+    if (req.user.role !== 'admin') {
+      filter.userId = req.user.id;
+    }
     if (req.query.cardNum) filter.cardNum = req.query.cardNum;
     if (req.query.merchant) filter.merchant = { $regex: req.query.merchant, $options: 'i' };
     if (req.query.minAmount) filter.amount = { ...filter.amount, $gte: parseFloat(req.query.minAmount) };
@@ -128,7 +131,7 @@ router.get('/', requireAuth, async (req, res, next) => {
 });
 
 // ── GET /api/transactions/flagged — High-risk transactions ─
-router.get('/flagged', requireAuth, async (req, res, next) => {
+router.get('/flagged', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const threshold = parseFloat(req.query.threshold) || 0.5;
     const transactions = await Transaction.find({
@@ -144,7 +147,7 @@ router.get('/flagged', requireAuth, async (req, res, next) => {
 });
 
 // ── GET /api/transactions/stats — Dashboard statistics ─────
-router.get('/stats', requireAuth, async (req, res, next) => {
+router.get('/stats', requireAuth, requireRole('admin'), async (req, res, next) => {
   try {
     const [
       totalCount,
@@ -157,7 +160,7 @@ router.get('/stats', requireAuth, async (req, res, next) => {
       Transaction.countDocuments({ fraudScore: { $gte: 0.5 } }),
       Transaction.countDocuments({ isSmurfing: true }),
       Transaction.countDocuments({ analystLabel: 'unreviewed', fraudScore: { $gte: 0.5 } }),
-      Transaction.find().sort({ createdAt: -1 }).limit(5).select('cardNum merchant amount fraudScore createdAt'),
+      Transaction.find().sort({ createdAt: -1 }).limit(5).select('cardNum merchant amount fraudScore createdAt fraudFlags isSmurfing smurfingPattern analystLabel'),
     ]);
 
     // Risk distribution

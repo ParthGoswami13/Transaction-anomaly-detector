@@ -4,6 +4,17 @@
 
 ---
 
+## ✨ Key Features
+
+- **🧠 Ensemble Machine Learning**: Compares 6 distinct ML models (XGBoost, Random Forest, SVM, etc.) dynamically via PR-AUC to ensure high precision on highly imbalanced transaction data.
+- **🕸️ Graph-Based Smurfing Detection**: Builds a live in-memory NetworkX graph to catch complex money laundering typologies (fan-in, fan-out, layering cycles, and fraud rings).
+- **👁️ Explainable AI (SHAP)**: Every blocked transaction includes a human-readable SHAP breakdown explaining exactly *why* the model flagged it.
+- **💳 KYC Document Verification**: Integrates with Groq Vision LLMs for lightning-fast OCR and identity verification.
+- **✨ Ultra-Premium UI/UX**: Features a stunning, Framer Motion-powered dark mode interface with interactive 3D grid backgrounds, glassmorphism components, and dynamic hover states for a truly next-gen analyst experience.
+- **⚡ Hot-Swappable AI Architecture**: Decoupled Python FastAPI service allows data scientists to swap models without touching the Node.js/React stack.
+
+---
+
 ## 🏗️ Architecture
 
 ```
@@ -101,6 +112,18 @@ The AI service supports an **ensemble comparison** of 6 models:
 
 Selected by **PR-AUC** (not accuracy) to handle class imbalance.
 
+### Model Performance (Evaluation)
+Based on recent training evaluation with 70,000+ transaction records (using SMOTE oversampling and RFECV feature selection):
+
+| Model | PR-AUC | Training Time |
+|-------|--------|---------------|
+| **XGBoost** 👑 | **0.7966** | 1.5s |
+| Stacking | 0.7336 | 63.1s |
+| Random Forest | 0.6908 | 8.1s |
+| SVM (RBF) | 0.6506 | 292.9s |
+| Logistic Regression | 0.6216 | 6.1s |
+| Decision Tree | 0.4162 | 1.0s |
+
 ### Training (when ready)
 ```bash
 cd ai-service
@@ -130,26 +153,30 @@ MODEL_PATH=app/models/fraud_model.pkl
 ## 📁 Project Structure
 
 ```
-finguard/
+FinGuard/
 ├── frontend/              # React + Vite + Tailwind
 │   └── src/
-│       ├── pages/         # Dashboard, Transactions, Cases, Graph, KYC
-│       ├── components/    # Sidebar, StatsCard, RiskBadge, FraudGraphView...
+│       ├── pages/         # Dashboard, Admin, Transactions, Cases, FraudGraph, KYC, Login
+│       ├── components/    # Background3D, Sidebar, Topbar, StatsCard, DetailPanel
+│       │                  # TransactionTable, FraudGraphView, ModelComparisonChart...
+│       ├── context/       # ThemeContext (Dark Mode management)
 │       └── api/           # Axios client with JWT interceptor
-├── backend/               # Express + MongoDB
+├── backend/               # Express + Node.js + MongoDB
+│   ├── seed-fraud.js      # Script to inject mock synthetic fraud data
 │   └── src/
 │       ├── models/        # User, Transaction, KycRecord
 │       ├── routes/        # auth, transactions, cases, kyc
 │       ├── middleware/    # JWT auth
 │       └── services/      # KYC OCR proxy (Groq)
-├── ai-service/            # FastAPI
+├── ai-service/            # Python FastAPI
+│   ├── task-120.log       # Output log from the ML ensemble training
 │   └── app/
-│       ├── main.py        # API endpoints
-│       ├── feature_engineering.py
-│       ├── train.py       # Ensemble training (run manually)
-│       ├── graph_detection.py
-│       ├── explainability.py
-│       └── models/        # .pkl + metadata.json
+│       ├── main.py        # API endpoints (/analyze_transaction, /explain_prediction)
+│       ├── features/      # feature_engineering, feature_selection
+│       ├── training/      # train.py (Ensemble training & evaluation)
+│       ├── graph/         # graph_builder, graph_detection, graph_store
+│       ├── explainability/# shap_explainer.py
+│       └── models/        # fraud_model.pkl + model_metadata.json
 └── docker-compose.yml
 ```
 
